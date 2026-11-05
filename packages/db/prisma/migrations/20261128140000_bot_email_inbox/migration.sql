@@ -28,9 +28,9 @@ ALTER TABLE "bot_email_messages" ADD CONSTRAINT "bot_email_messages_spaceId_fkey
 
 ALTER TABLE "bot_email_messages" ADD CONSTRAINT "bot_email_messages_botId_fkey" FOREIGN KEY ("botId") REFERENCES "bots"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Same policies as scratchpad_items (20261022120000_row_level_security_tenant_tables).
+-- A bot's mail belongs to its Space; the inbound route saves it as a system step.
 ALTER TABLE "bot_email_messages" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY bot_email_messages_tenant ON "bot_email_messages"
   USING ("spaceId" = NULLIF(current_setting('app.space_id', true), ''));
 CREATE POLICY bot_email_messages_system ON "bot_email_messages"
-  USING (current_setting('app.rls_bypass', true) = 'on');
+  USING ((SELECT app_rls_bypass()));
