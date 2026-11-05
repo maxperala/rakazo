@@ -1859,7 +1859,14 @@ export function createRunExecutor(executorDeps: ExecutorDeps) {
                 botInstructions: [
                   runIdentityInstruction(bot, run.trigger),
                   botEmail
-                    ? botEmailInstruction(botEmail, emailInbox, emailInbox && Boolean(deps.email))
+                    ? botEmailInstruction(
+                        botEmail,
+                        // Only the tools this bot has: its owner may turn either off.
+                        emailInbox && !disabledBuiltinTools.has("read_email"),
+                        emailInbox &&
+                          Boolean(deps.email) &&
+                          !disabledBuiltinTools.has("send_email"),
+                      )
                     : "",
                 ]
                   .filter(Boolean)
