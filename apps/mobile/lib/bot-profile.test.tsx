@@ -177,6 +177,10 @@ vi.mock("../components/run-error-sheet", () => ({
     details ? createElement("dialog", { open: true }, details) : null,
 }));
 vi.mock("../components/native-symbol", () => ({ NativeSymbol: () => null }));
+vi.mock("../components/routine-email-trigger", () => ({
+  RoutineEmailTrigger: () => null,
+  useBotEmail: () => ({ address: null, ownerDomain: "", setAddress: () => undefined }),
+}));
 vi.mock("../components/row-accessories", () => ({ Chevron: () => null }));
 
 const routine = (id: string, name: string, partial: Partial<Routine> = {}) => ({
