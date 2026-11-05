@@ -146,6 +146,7 @@ import { restoreTurnCheckpointEffects, settleRunningHelpers } from "./run-contex
 import { APPROVED_EFFECT_REPLAY_ORDER, buildApprovalContinuation } from "./run-effects.js";
 import {
   BOT_DIRECTORY_LIMIT,
+  botEmailInstruction,
   dockerComputerToolInstruction,
   persistentComputerInstruction,
   runIdentityInstruction,
@@ -1329,6 +1330,16 @@ export function createRunExecutor(executorDeps: ExecutorDeps) {
         const pageBrowserAllowed =
           graphical && browser.describe().capabilities.page && !heldForTakeover;
         const disabledBuiltinTools = disabledBuiltinToolSet(bot.disabledBuiltinTools);
+        const emailName = deps.inboundEmailDomain
+          ? await deps.prisma.botEmailAddress.findUnique({
+              where: { botId: bot.id },
+              select: { localPart: true },
+            })
+          : null;
+        const botEmail = emailName ? `${emailName.localPart}@${deps.inboundEmailDomain}` : null;
+        // The inbox is the owner's mail: read only in their own runs, never in a group or channel.
+        const emailInbox =
+          Boolean(botEmail) && run.userId === bot.userId && !thread.groupId && !nonOwnerChatRun;
         const userComputerOwnerId = userComputerOwner({
           trigger: run.trigger,
           sourceRole: sourceMessage?.role,
@@ -1375,6 +1386,7 @@ export function createRunExecutor(executorDeps: ExecutorDeps) {
             followUpFromUser: sourceMessage?.role === "user",
             userComputer: userComputer === "connected",
             userComputerScreen,
+            emailInbox,
           }),
           // Cross-owner agent connections only exist for chat-linked bots.
           ...(hasMessagingIdentity &&
@@ -1841,7 +1853,12 @@ export function createRunExecutor(executorDeps: ExecutorDeps) {
               // cache-aware context for connections declaring a cache window.
               contextStrategy: deps.contextStrategy,
               instructions: userTurnInstructions({
-                botInstructions: runIdentityInstruction(bot, run.trigger),
+                botInstructions: [
+                  runIdentityInstruction(bot, run.trigger),
+                  botEmail ? botEmailInstruction(botEmail, emailInbox) : "",
+                ]
+                  .filter(Boolean)
+                  .join("\n"),
                 groupContext: groupReplyOptional
                   ? [groupContext, GROUP_UNADDRESSED_REPLY_GUIDANCE].filter(Boolean).join("\n")
                   : groupContext,

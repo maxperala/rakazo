@@ -444,6 +444,7 @@ model Space {
   runs                        Run[]
   routines                    Routine[]
   scratchpadItems             ScratchpadItem[]
+  botEmailMessages            BotEmailMessage[]
   taughtSkills                TaughtSkill[]
   agentSkills                 AgentSkill[]
   agentImports                AgentImport[]
@@ -797,6 +798,7 @@ model Bot {
 
   externalConversations ExternalConversation[]
   emailAddress      BotEmailAddress?
+  emailMessages     BotEmailMessage[]
 
   @@unique([spaceId, spawnKey])
   @@index([spaceId, userId, archivedAt, pinned, updatedAt])
@@ -1248,6 +1250,37 @@ model BotEmailAddress {
   unverifiedNoticeAt DateTime?
 
   @@map("bot_email_addresses")
+}
+
+/// Mail delivered to a bot's address, whoever sent it. Kept until it is deleted.
+model BotEmailMessage {
+  id          String    @id @default(cuid())
+  spaceId     String
+  space       Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  botId       String
+  bot         Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  /// The same message, however often it is delivered, is saved once per bot.
+  key         String
+  /// The sender's Message-ID and the thread it answers, for replies.
+  messageId   String?
+  references  String[]
+  fromAddress String
+  fromName    String
+  /// Signed by the From address's own domain (DKIM), so the sender is not forged.
+  verified    Boolean
+  to          String[]
+  cc          String[]
+  subject     String
+  /// The sender's Date header, unverified.
+  sentAt      String?
+  text        String
+  /// Kept files ({ artifactId, name, mimeType, size }) and names of refused ones ({ name }).
+  attachments Json      @default("[]")
+  receivedAt  DateTime  @default(now())
+
+  @@unique([botId, key])
+  @@index([botId, receivedAt])
+  @@map("bot_email_messages")
 }
 
 model ScratchpadItem {
