@@ -1244,6 +1244,8 @@ model BotEmailAddress {
   botId     String?  @unique
   bot       Bot?     @relation(fields: [botId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
+  /// Last time the owner was told their own mail could not be verified; spaces those notes out.
+  unverifiedNoticeAt DateTime?
 
   @@map("bot_email_addresses")
 }
