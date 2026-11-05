@@ -447,10 +447,10 @@ export function threadContextForRun<T extends { id?: string; role: string }>(
 }
 
 /** The bot's own address, which it may give out, and whether this run can read what arrives. */
-export function botEmailInstruction(address: string, canRead: boolean): string {
-  return canRead
-    ? `Your email address is ${address}. Every email sent to it is saved to your inbox; check it with read_email.`
-    : `Your email address is ${address}.`;
+export function botEmailInstruction(address: string, canRead: boolean, canSend: boolean): string {
+  if (!canRead) return `Your email address is ${address}.`;
+  const read = `Your email address is ${address}. Every email sent to it is saved to your inbox; check it with read_email`;
+  return canSend ? `${read}, and send from it with send_email.` : `${read}.`;
 }
 
 /** Profile fields the creation intro is asked to explain. Other runs keep the prior identity line. */

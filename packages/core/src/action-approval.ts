@@ -47,6 +47,7 @@ const APPROVAL_REQUIRED_BUILTIN_TOOLS = new Set([
   "update_group",
   "create_child_routine",
   "feedback",
+  "send_email",
 ]);
 const EXPLICIT_APPROVAL_BUILTIN_TOOLS = new Set([
   // Permanent: the owner sees the exact address before it is theirs for good.
@@ -227,6 +228,8 @@ export function unattendedTriggerToolRequiresApproval(
  */
 const OWN_STATE_RESULT_TOOLS = new Set([
   "ask_user",
+  // Only confirms what the bot itself sent.
+  "send_email",
   "connect_app",
   "attach_file",
   "end_call",

@@ -1389,6 +1389,7 @@ export function createRunExecutor(executorDeps: ExecutorDeps) {
             emailInbox,
             emailClaimable:
               Boolean(deps.inboundEmailDomain) && !emailName && run.userId === bot.userId,
+            emailSend: Boolean(deps.email),
           }),
           // Cross-owner agent connections only exist for chat-linked bots.
           ...(hasMessagingIdentity &&
@@ -1857,7 +1858,9 @@ export function createRunExecutor(executorDeps: ExecutorDeps) {
               instructions: userTurnInstructions({
                 botInstructions: [
                   runIdentityInstruction(bot, run.trigger),
-                  botEmail ? botEmailInstruction(botEmail, emailInbox) : "",
+                  botEmail
+                    ? botEmailInstruction(botEmail, emailInbox, emailInbox && Boolean(deps.email))
+                    : "",
                 ]
                   .filter(Boolean)
                   .join("\n"),
